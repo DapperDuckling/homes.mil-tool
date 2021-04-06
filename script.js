@@ -13,8 +13,7 @@ class ResultExtractor {
     static init() {
 
         // Checks for magic text on page to determine suitability of loading
-        let foundMagicText = $("div.ngComp.h2a").text().includes("Property Search Results");
-        if (!foundMagicText) return;
+        if (!ResultExtractor._hasMagicText()) return;
 
         // Grab the extract button
         let extractButton = $('#ducky-home-tool button.extract');
@@ -31,6 +30,23 @@ class ResultExtractor {
         // Bind the override button
         $('#ducky-home-tool button.generate-map').one('click', ResultExtractor._forceGenerate);
 
+    }
+
+    static async sleep(ms) {
+        // Sleep for a bit
+        await new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    static _hasMagicText() {
+        return $("div.ngComp.h2a").text().includes("Property Search Results");
+    }
+
+    static _hasCurrentPageText(sourceElem) {
+        return sourceElem.find("#c8-comp span.ngScrollPadCurrent").length === 1;
+    }
+
+    static _getCurrentPageValue(sourceElem) {
+        return parseInt(sourceElem.find("#c8-comp span.ngScrollPadCurrent").text());
     }
 
     static _resetForceGeneratePromise() {
@@ -58,10 +74,11 @@ class ResultExtractor {
         let hasNextPage = false;
         let offset = 0;
         let errorTries = 0;
-        let resultData;
+        let resultData, resultParsed;
+        let loadedPages = [];
 
         // Update the page loaded count
-        ResultExtractor._updateCurrPage();
+        $("#ducky-home-tool div.loading span.page-curr").text("0");
         ResultExtractor._updateTotalPages();
 
         do {
@@ -95,12 +112,41 @@ debugger;
                     dataType: 'text',
                     error: (a,b,error) => {
                         // Unexpected
-                        console.log(error);
-                        throw new Error();
+                        throw new Error(error);
                     }
                 });
 
+                // Check for a user override
+                if (ResultExtractor._forceGenerateMap) return;
+
+                // Reset the error tries
+                errorTries = 0;
+
+                // Parse the result
+                resultParsed = $(resultData);
+
+                // Check for a page number
+                if (!ResultExtractor._hasCurrentPageText(resultParsed)) {
+                    // noinspection ExceptionCaughtLocallyJS
+                    throw new Error('Cannot find page number');
+                }
+
+                // Get the current page from DOM (not the mathematical way)
+                let markedCurrentPage = ResultExtractor._getCurrentPageValue(resultParsed);
+
+                // Check if we have already loaded this page
+                if (loadedPages.includes(markedCurrentPage)) {
+                    alert('Attempted to load the same result page twice, stopping further result extraction!');
+                    return;
+                }
+
+                // Add the page number to our tracker
+                loadedPages.push(markedCurrentPage);
+
             } catch (e) {
+
+                // Log the error
+                console.log(e);
 
                 // Check if we can redo
                 if (errorTries++ <= 5) {
@@ -112,42 +158,71 @@ debugger;
                 return;
             }
 
-            // Check for a user override
-            if (ResultExtractor._forceGenerateMap) return;
-
-            // Reset the error tries
-            errorTries = 0;
-
-            // Parse the result
-            let resultParsed = $(resultData);
-
-            // Store the property search promises
-            let propertyPromises = [];
+            // ** Removed due to the serverside inability to handle simultaneous requests **
+            // // Store the property search promises
+            // let propertyPromises = [];
 
             // Loop through each of the results on this page
             resultParsed.find("div.ngComp a.ngLink[title='Details']").each(async (i, element) => {
 
-                let propertyPromise = new Promise(async (resolve) => {
+                // let propertyPromise = new Promise(async (resolve) => {
 
                     try {
                         await ResultExtractor._grabPropertyDetails(element);
+
                     } catch (e) {
                         // Save this error property
-                        ResultExtractor._errorProperties.push(element.text() + ' - ' + element.get(0).href);
+                        ResultExtractor._errorProperties.push($(element).text() + ' - ' + element.href);
                     }
 
-                    return resolve();
-                });
+                    // return resolve();
+                // });
 
-                // Add the promise to the tracker
-                propertyPromises.push(propertyPromise);
+                // // Add the promise to the tracker
+                // propertyPromises.push(propertyPromise);
 
             });
 
             // Check for a user override
             if (ResultExtractor._forceGenerateMap) return;
 
-            await Promise.all(propertyPromises);
+            // await Promise.all(propertyPromises);
+
+            try {
+                // Force the server to return to the search page (thanks backend)
+                let searchPageReq = {
+                    type: "GET",
+                    ur: 'https://www.homes.mil/homes/DispatchServlet/HomesPropertySearch',
+                    dataType: 'text',
+                    error: async (a, b, error) => {
+
+                        // Check for a user override
+                        if (ResultExtractor._forceGenerateMap) return;
+
+                        if (currRequestObj.retries++ <= 5) {
+                            // Sleep for a bit
+                            sleep(1250);
+
+                            await $.ajax(currRequestObj);
+                            return;
+                        }
+
+                        // Unexpected
+                        console.log(error);
+                        alert('Could not load property search page after ' + searchPageReq.retries + ' tries, stopping further result extraction!');
+                        throw new Error('STOP_RUN');
+                    },
+                    retries: 0,
+                };
+
+                // Make the request for the search page (reset the server side)
+                await $.ajax(searchPageReq);
+
+            } catch(e) {
+                if (e === 'STOP_RUN') return;
+
+                // Otherwise expected to fail
+            }
 
             // Update the page loaded value
             ResultExtractor._updateCurrPage(resultParsed);
@@ -164,33 +239,54 @@ debugger;
 
     static async _grabPropertyDetails(linkElement) {
 
-        let retries = 0;
         let parsedData = null;
-        const requestObj = {
+        let currRequestObj = {
             type: "GET",
-            url: linkElement.href,
             dataType: 'text',
-            success: (data) => {
-                parsedData = $(data);
-            },
             error: async (a, b, error) => {
 
                 // Check for a user override
                 if (ResultExtractor._forceGenerateMap) return;
 
-                if (retries++ <= 3) {
-                    await $.ajax(requestObj);
+                if (currRequestObj.retries++ <= 3) {
+
+                    // Sleep for a bit
+                    sleep(1250);
+
+                    await $.ajax(currRequestObj);
                     return;
                 }
 
                 // Unexpected
                 console.log(error);
-                throw new Error();
-            }
+                throw new Error("STOP_RUN");
+            },
+            retries: 0,
         };
 
         // Make the request
-        await $.ajax(requestObj);
+        currRequestObj = {
+            ...currRequestObj,
+            url: linkElement.href,
+            retries: 0,
+        };
+        try {
+            await $.ajax(currRequestObj);
+        } catch {
+            if (e === 'STOP_RUN') throw e;
+            // Otherwise, expected
+        }
+
+        // Make the data request
+        currRequestObj = {
+            ...currRequestObj,
+            url: 'https://www.homes.mil/homes/DispatchServlet/Back?Mod=HomesPropertyDetail',
+            success: (data) => {
+                parsedData = $(data);
+            },
+            retries: 0,
+        };
+        await $.ajax(currRequestObj);
 
         // Check for a user override
         if (ResultExtractor._forceGenerateMap) return;
@@ -351,7 +447,8 @@ debugger;
             ResultExtractor._generateMap();
         });
 
-        // todo: Determine how many pages we are grabbing and update the UI
+        // Show the loading box
+        toolDiv.find('div.loading').show();
 
         // Pull the results
         try {
