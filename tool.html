@@ -1,25 +1,73 @@
 <style>
-    #ducky-move-tool {
-        width: 180px;
-        height: 33px;
+    #ducky-home-tool {
         position: fixed;
         top: 20px;
         left: 20px;
-        background: white;
-        border-radius: 20px;
         font-size: 15px;
         font-family: arial,sans-serif;
+    }
+
+    #ducky-home-tool button.extract {
+        width: 180px;
+        height: 33px;
         border: 2px solid #008c85;
         box-shadow: 0 0 10px 2px #00dcd1;
         cursor: pointer;
     }
 
-    #ducky-move-tool:hover {
+    #ducky-home-tool:hover button.extract {
         background-color: aliceblue;
     }
 
-    #ducky-move-tool:active {
+    #ducky-home-tool:active button.extract {
         transform: translateY(1px);
     }
+
+    #ducky-home-tool:focus button.extract {
+        focus: 0;
+    }
+
+    #ducky-home-tool > * {
+        background: white;
+        border-radius: 20px;
+        display: none;
+    }
+
+    #ducky-home-tool div.loading {
+        padding: 5px 20px;
+        text-align: center;
+        border: black 1px solid;
+        margin-top: 20px;
+
+        display: block;
+    }
+
+    #ducky-home-tool div.loading div.dragbar {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        font-size: 12px;
+        text-align: left;
+    }
+
+    #ducky-home-tool div.loading div.dragbar div {
+        margin: 0 20px;
+        padding-left: 5px;
+        cursor: move;
+    }
+
+    #ducky-home-tool div.loading div.dragbar div:hover {
+        background-color: #00000012;
+    }
 </style>
-<button id="ducky-move-tool">EXTRACT RESULTS</button>
+<div id="ducky-home-tool">
+    <button class="extract">EXTRACT RESULTS</button>
+
+    <div class="loading">
+        <div class="dragbar"><div>::</div></div>
+        <h2>LOADING PAGE RESULTS</h2>
+        <h3>Page 1 of 20 results loaded</h3>
+        <div><button class="generate-map">Generate Map (skip loading)</button></div>
+        <sub>Do not use the site while this is in progress or you may delay your results</sub>
+    </div>
+</div>

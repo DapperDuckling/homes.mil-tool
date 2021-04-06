@@ -1,16 +1,23 @@
 {
-  "name": "Move.mil Result Extractor",
-  "description" : "A script to extract the move.mil results for easier manipulation",
+  "name": "Homes.mil Result Extractor",
+  "description" : "A script to extract the home.mil results for easier manipulation",
   "version": "0.1",
   "manifest_version": 2,
   "content_scripts": [{
-    "js": ["contentscript.js"],
-    "matches": ["*://move.mil/*"]
+    "js": [
+      "contentscript.js",
+      "jquery-3.6.0.min.js"
+    ],
+    "matches": [
+      "*://homes.mil/*",
+      "*://www.homes.mil/*"
+    ]
   }],
   "web_accessible_resources": [
-    "script.js",
-    "tool.html"
+    "tool.html",
+    "script.js"
   ],
+
   "permissions": [
     "tabs",
     "storage",
