@@ -11,7 +11,7 @@ class ResultExtractor {
         if (!foundMagicText) return;
 
         // Grab the extract button
-        let extractButton = $('#ducky-home-tool button._extract');
+        let extractButton = $('#ducky-home-tool button.extract');
 
         // Display the extract tool button
         extractButton.show();
@@ -34,26 +34,187 @@ class ResultExtractor {
      */
     static async _loadResultData() {
 
-        let hasNextPage = true;
+        let hasNextPage = false;
         let offset = 0;
+        let errorTries = 0;
+        let resultData;
+        let errorLocations = [];
 
-        while (hasNextPage) {
+        do {
 
-            // Request result page
-            await $.ajax({
-                type: "GET",
-                url: "/homes/DispatchServlet/Back?Mod=top&OFFSET=" + offset,
-                error: () => {
-                    // Expected due to server-side redirects to http instead of https
+            // Force result page to update
+            // (Weird way the backend works)
+            try {
+                await $.ajax({
+                    type: "GET",
+                    url: "/homes/DispatchServlet/Back?Mod=top&OFFSET=" + offset,
+                    error: () => {
+                        // Override default error msg
+                    }
+                });
+            } catch (e) {
+                // Expected due to server-side redirects to http instead of https
+            }
+
+            try {
+                // Grab the updated result page
+                resultData = await $.ajax({
+                    type: "GET",
+                    url: "/homes/DispatchServlet/Back?Mod=HomesPropertySearch",
+                    dataType: 'text',
+                    error: (a,b,error) => {
+                        // Unexpected
+                        console.log(error);
+                        throw new Error();
+                    }
+                });
+
+            } catch (e) {
+
+                // Check if we can redo
+                if (errorTries++ <= 5) {
+                    continue;
                 }
+
+                // Too many errors, fail
+                alert('Tried ' + errorTries + ' to pull result page. Stopping further result extraction!');
+                return;
+            }
+
+            // Parse the result
+            let resultParsed = $(resultData);
+
+            // Store the property search promises
+            let propertyPromises = [];
+
+            // Loop through each of the results on this page
+            resultParsed.find("div.ngComp a.ngLink[title='Details']").each(async (i, element) => {
+
+                let propertyPromise = new Promise(async (resolve) => {
+
+                    try {
+                        await ResultExtractor._grabPropertyDetails(element);
+                    } catch (e) {
+                        // Save this error property
+                        errorLocations.push(linkElement.text() + ' - ' + linkElement.get(0).href);
+                    }
+
+                    return resolve();
+                });
+
+                // Add the promise to the tracker
+                propertyPromises.push(propertyPromise);
+
             });
 
-            //
+            await Promise.all(propertyPromises);
+
+            // Reset the error tries
+            errorTries = 0;
 
             // Update the offset
             offset += 10;
+
+            // todo: Check if there is a next page
+
+
+        } while (hasNextPage);
+
+
+    }
+
+    static async _grabPropertyDetails(linkElement) {
+        let retries = 0;
+        let parsedData = null;
+        const requestObj = {
+            type: "GET",
+            url: "/homes/DispatchServlet/Back?Mod=HomesPropertySearch",
+            dataType: 'text',
+            success: (data) => {
+                parsedData = $(data);
+            },
+            error: async (a, b, error) => {
+                if (retries++ <= 3) {
+                    await $.ajax(requestObj);
+                    return;
+                }
+
+                // Unexpected
+                console.log(error);
+                throw new Error();
+            }
+        };
+
+        // Make the request
+        await $.ajax(requestObj);
+
+        if (parsedData === null) {
+            throw new Error('No parsed data passed to property processing');
         }
 
+        // Build our property's object
+        let propertyData = {
+            listingId: parsedData.find('#c29-comp').text(),
+            name: parsedData.find('#c32-comp').text() + " " + parsedData.find('#c33-comp').text(),
+            phone: parsedData.find('#c36-comp').text(),
+            available: parsedData.find('#c13-comp').text(),
+            address: parsedData.find('#c17-comp').text() + ", " + parsedData.find('#c18-comp').text(),
+            other: parsedData.find('#c40-comp').text(),
+            details: {
+                type: parsedData.find('#FAC_DISP-comp').text(),
+                rpp: parsedData.find('#cXX-comp').text(),
+                privatized: parsedData.find('#cXX-comp').text(),
+                tla: parsedData.find('#cXX-comp').text(),
+                plan: parsedData.find('#cXX-comp').text(),
+                bedrooms: parsedData.find('#cXX-comp').text(),
+                sqft: parsedData.find('#cXX-comp').text(),
+                baths: {
+                    full: parsedData.find('#cXX-comp').text(),
+                    threeQtr: parsedData.find('#cXX-comp').text(),
+                    half: parsedData.find('#cXX-comp').text(),
+                },
+                stories: parsedData.find('#cXX-comp').text(),
+                units: parsedData.find('#cXX-comp').text(),
+                furnished: parsedData.find('#cXX-comp').text(),
+                ada: parsedData.find('#cXX-comp').text(),
+                smoking: parsedData.find('#cXX-comp').text(),
+                yearBuilt: parsedData.find('#cXX-comp').text(),
+                occupied: parsedData.find('#cXX-comp').text(),
+                listed: parsedData.find('#cXX-comp').text(),
+                roommatesAllowed: parsedData.find('#cXX-comp').text(),
+                pets: parsedData.find('#cXX-comp').text(),
+            },
+            costs: {
+                term: parsedData.find('#cXX-comp').text(),
+                monthlyRent: parsedData.find('#cXX-comp').text(),
+                deposit: parsedData.find('#cXX-comp').text(),
+                petDeposit: parsedData.find('#cXX-comp').text(),
+                appFee: parsedData.find('#cXX-comp').text(),
+                applicationViewFee: parsedData.find('#cXX-comp').text(),
+                creditCheckFee: parsedData.find('#cXX-comp').text(),
+                otherFee: parsedData.find('#cXX-comp').text(),
+                averageUtilities: parsedData.find('#cXX-comp').text(),
+                scraMilClause: parsedData.find('#cXX-comp').text(),
+                inspectionStatus: parsedData.find('#cXX-comp').text(),
+            },
+            locationDetails: {
+                community: parsedData.find('#cXX-comp').text(),
+                schoolDistrict: parsedData.find('#cXX-comp').text(),
+                distanceToInstallation: parsedData.find('#cXX-comp').text(),
+                gpsLat: parsedData.find('#cXX-comp').text(),
+                gpsLong: parsedData.find('#cXX-comp').text(),
+                map: parsedData.find('#cXX-comp').text(),
+                website: parsedData.find('#cXX-comp').text(),
+            },
+            amenities: {
+                appliancesIncl: parsedData.find('#cXX-comp').text(),
+                community: parsedData.find('#cXX-comp').text(),
+                features: parsedData.find('#cXX-comp').text(),
+                heatingCooling: parsedData.find('#cXX-comp').text(),
+                parking: parsedData.find('#cXX-comp').text(),
+                safetySecurity: parsedData.find('#cXX-comp').text(),
+            }
+        }
 
     }
 
@@ -73,7 +234,7 @@ class ResultExtractor {
         let toolDiv = $('#ducky-home-tool');
 
         // Disable the extract button
-        toolDiv.find('button._extract').prop('disabled', true);
+        toolDiv.find('button.extract').prop('disabled', true);
 
         // Grab the skip loading button
         let loadingBtn = toolDiv.find('button.generate-map');
@@ -90,7 +251,7 @@ class ResultExtractor {
         // todo: Determine how many pages we are grabbing and update the UI
 
         // Pull the results
-        await this._loadResultData();
+        await ResultExtractor._loadResultData();
 
 
         // // Enable the skip loading button
