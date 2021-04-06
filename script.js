@@ -1,3 +1,5 @@
+/** @function $ */ // Hush intelliJ, jQuery will be available at runtime
+
 class ResultExtractor {
 
     static PAGE_INFO_REGEX = /(\d+) to (\d+) of (\d+)/;
@@ -158,35 +160,21 @@ debugger;
                 return;
             }
 
-            // ** Removed due to the serverside inability to handle simultaneous requests **
-            // // Store the property search promises
-            // let propertyPromises = [];
+            // Grab the list of results
+            let resultList = resultParsed.find("div.ngComp a.ngLink[title='Details']");
 
             // Loop through each of the results on this page
-            resultParsed.find("div.ngComp a.ngLink[title='Details']").each(async (i, element) => {
-
-                // let propertyPromise = new Promise(async (resolve) => {
-
-                    try {
-                        await ResultExtractor._grabPropertyDetails(element);
-
-                    } catch (e) {
-                        // Save this error property
-                        ResultExtractor._errorProperties.push($(element).text() + ' - ' + element.href);
-                    }
-
-                    // return resolve();
-                // });
-
-                // // Add the promise to the tracker
-                // propertyPromises.push(propertyPromise);
-
-            });
+            for(let i=0; i<resultList.length; i++) {
+                try {
+                    await ResultExtractor._grabPropertyDetails(resultList[i]);
+                } catch (e) {
+                    // Save this error property
+                    ResultExtractor._errorProperties.push($(resultList[i]).text() + ' - ' + resultList[i].href);
+                }
+            }
 
             // Check for a user override
             if (ResultExtractor._forceGenerateMap) return;
-
-            // await Promise.all(propertyPromises);
 
             try {
                 // Force the server to return to the search page (thanks backend)
@@ -199,11 +187,11 @@ debugger;
                         // Check for a user override
                         if (ResultExtractor._forceGenerateMap) return;
 
-                        if (currRequestObj.retries++ <= 5) {
+                        if (searchPageReq.retries++ <= 5) {
                             // Sleep for a bit
-                            sleep(1250);
+                            await ResultExtractor.sleep(1250);
 
-                            await $.ajax(currRequestObj);
+                            await $.ajax(searchPageReq);
                             return;
                         }
 
@@ -251,7 +239,7 @@ debugger;
                 if (currRequestObj.retries++ <= 3) {
 
                     // Sleep for a bit
-                    sleep(1250);
+                    await ResultExtractor.sleep(1250);
 
                     await $.ajax(currRequestObj);
                     return;
@@ -272,7 +260,7 @@ debugger;
         };
         try {
             await $.ajax(currRequestObj);
-        } catch {
+        } catch (e) {
             if (e === 'STOP_RUN') throw e;
             // Otherwise, expected
         }
