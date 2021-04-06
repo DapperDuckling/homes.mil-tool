@@ -5,6 +5,7 @@
         left: 20px;
         font-size: 15px;
         font-family: arial,sans-serif;
+        width: 330px;
     }
 
     #ducky-home-tool button.extract {
@@ -65,6 +66,10 @@
         visibility: hidden;
     }
 
+    #ducky-home-tool div.loading div.subscript {
+        font-size: 9px;
+    }
+
 </style>
 <div id="ducky-home-tool">
     <button class="extract">EXTRACT RESULTS</button>
@@ -73,8 +78,8 @@
         <div class="dragbar"><div>::</div></div>
         <h2>LOADING PAGE RESULTS</h2>
         <h3>Page <span class="page-curr">0</span> of <span class="page-total">XX</span> loaded</h3>
-        <div class="property"><sub>Property <span class="property-curr">0</span> of <span class="property-total">XX</span> this page loaded</sub></div>
+        <div class="property"><sub>Property <span class="property-curr">0</span> of <span class="property-total">XX</span> loaded</sub></div>
         <div><button class="generate-map" disabled="disabled">Generate Map (skip loading)</button></div>
-        <sub>Do not use the site while this is in progress or you may delay your results</sub>
+        <div class="subscript">Do not use site while running or you may delay results</div>
     </div>
 </div>

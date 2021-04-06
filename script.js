@@ -77,18 +77,22 @@ class ResultExtractor {
         let errorTries = 0;
         let isLastPage, resultData, resultParsed;
         let loadedPages = [];
+        let loadingDetailElem = $("#ducky-home-tool div.loading div.property");
 
         // Update the page loaded count
         $("#ducky-home-tool div.loading span.page-curr").text("0");
         ResultExtractor._updateTotalPages();
 
         // Hide the property progress
-        $("#ducky-home-tool div.loading div.property").css('visibility', 'hidden');
+        loadingDetailElem.css('visibility', 'hidden');
 
         do {
-debugger;
+
             // Check for a user override
             if (ResultExtractor._forceGenerateMap) return;
+
+            // Update the UI
+            ResultExtractor._updateCurrProperty(0);
 
             // Force result page to update
             // (Weird way the backend works)
@@ -170,7 +174,7 @@ debugger;
             ResultExtractor._updateTotalProperties(resultList.length);
 
             // Show the property progress
-            $("#ducky-home-tool div.loading div.property").css('visibility', 'visible');
+            loadingDetailElem.css('visibility', 'visible');
 
             // Loop through each of the results on this page
             for(let i=0; i<resultList.length; i++) {
@@ -192,7 +196,7 @@ debugger;
                 // Force the server to return to the search page (thanks backend)
                 let searchPageReq = {
                     type: "GET",
-                    ur: 'https://www.homes.mil/homes/DispatchServlet/HomesPropertySearch',
+                    url: 'https://www.homes.mil/homes/DispatchServlet/HomesPropertySearch',
                     dataType: 'text',
                     error: async (a, b, error) => {
 
