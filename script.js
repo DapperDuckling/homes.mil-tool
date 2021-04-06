@@ -235,7 +235,7 @@ class ResultExtractor {
             offset += 10;
 
             // Check for a next page
-            isLastPage = resultParsed.find("#c8-comp span.ngScrollPadLinks:last").hasClass("ngScrollPadCurrent");
+            isLastPage = resultParsed.find("#c8-comp span.ngScrollPadLinks > :last").hasClass("ngScrollPadCurrent");
 
         } while (isLastPage === false);
 
@@ -300,67 +300,83 @@ class ResultExtractor {
             throw new Error('No parsed data passed to property processing');
         }
 
+        //
+        // If you can find a more reliable way to scrape data from the page, be my guest. Tag IDs seem to change
+        // if pages have more or less information blocks on them...
+        //
+
+        // Find address
+        let address = parsedData.find('div.ngComp:contains("Address:")').parent().next().text();
+        if (address.trim() === "") {
+            let addressElem = parsedData.find('a[title="View in Google Maps"]:first');
+
+            if (addressElem.length === 0) {
+                throw new Error('No valid address found');
+            }
+
+            address = parsedData.find('a[title="View in Google Maps"]:first').text();
+            address += " " + parsedData.find('a[title="View in Google Maps"]:first').parent().parent().next().text()
+        }
+
         // Build our property's object
         let propertyData = {
-            listingId: parsedData.find('#c29-comp').text(),
-            name: parsedData.find('#c32-comp').text() + " " + parsedData.find('#c33-comp').text(),
-            phone: parsedData.find('#c36-comp').text(),
-            available: parsedData.find('#c13-comp').text(),
-            address: parsedData.find('#c17-comp').text() + ", " + parsedData.find('#c18-comp').text(),
-            other: parsedData.find('#c40-comp').text(),
+            listingId: parsedData.find('div.ngComp:contains("Listing ID:")').parent().next().text(),
+            name: parsedData.find('div.ngComp:contains("Name:")').parent().next().text() + " " + parsedData.find('div.ngComp:contains("Name:")').parent().nextAll(':eq(1)').text(),
+            phone: parsedData.find('div.ngComp:contains("Phone:")').parent().next().text(),
+            altPhone: parsedData.find('div.ngComp:contains("Alt Phone::")').parent().next().text(),
+            available: parsedData.find('div.ngComp:contains("AVAILABLE:")').parent().next().text(),
+            address: address,
+            other: parsedData.find('div.ngComp:contains("Other Features")').parent().nextAll(':eq(1)').text(),
             details: {
                 type: parsedData.find('#FAC_DISP-comp').text(),
-                rpp: parsedData.find('#cXX-comp').text(),
-                privatized: parsedData.find('#cXX-comp').text(),
-                tla: parsedData.find('#cXX-comp').text(),
-                plan: parsedData.find('#cXX-comp').text(),
-                bedrooms: parsedData.find('#cXX-comp').text(),
-                sqft: parsedData.find('#cXX-comp').text(),
+                rpp: parsedData.find('#RPP_DISP-comp').text(),
+                privatized: parsedData.find('#PPV_DISP-comp').text(),
+                tla: parsedData.find('#TLA_DISP-comp').text(),
+                plan: parsedData.find('#REF_PLAN-comp').text(),
+                bedrooms: parsedData.find('#BR_NO-comp').text(),
+                sqft: parsedData.find('#SQ_FT-comp').text(),
                 baths: {
-                    full: parsedData.find('#cXX-comp').text(),
-                    threeQtr: parsedData.find('#cXX-comp').text(),
-                    half: parsedData.find('#cXX-comp').text(),
+                    full: parsedData.find('#FULL_BATHS-comp').text(),
+                    threeQtr: parsedData.find('#THQTR_BATHS-comp').text(),
+                    half: parsedData.find('#HALF_BATHS-comp').text(),
                 },
-                stories: parsedData.find('#cXX-comp').text(),
-                units: parsedData.find('#cXX-comp').text(),
-                furnished: parsedData.find('#cXX-comp').text(),
-                ada: parsedData.find('#cXX-comp').text(),
-                smoking: parsedData.find('#cXX-comp').text(),
-                yearBuilt: parsedData.find('#cXX-comp').text(),
-                occupied: parsedData.find('#cXX-comp').text(),
-                listed: parsedData.find('#cXX-comp').text(),
-                roommatesAllowed: parsedData.find('#cXX-comp').text(),
-                pets: parsedData.find('#cXX-comp').text(),
+                stories: parsedData.find('#STORY_NO-comp').text(),
+                units: parsedData.find('#TOTAL_UNITS-comp').text(),
+                furnished: parsedData.find('#FURN_DISP-comp').text(),
+                ada: parsedData.find('#ADA_DISP-comp').text(),
+                smoking: parsedData.find('#SMOKING_DISP-comp').text(),
+                yearBuilt: parsedData.find('#YEAR_BUILT-comp').text(),
+                occupied: parsedData.find('#OCC_DISP-comp').text(),
+                listed: parsedData.find('#DT_LISTED_DISP-comp').text(),
+                roommatesAllowed: parsedData.find('#ROOMMATES_DISP-comp').text(),
+                pets: parsedData.find('#PETS_DISP-comp').text(),
             },
             costs: {
-                term: parsedData.find('#cXX-comp').text(),
-                monthlyRent: parsedData.find('#cXX-comp').text(),
-                deposit: parsedData.find('#cXX-comp').text(),
-                petDeposit: parsedData.find('#cXX-comp').text(),
-                appFee: parsedData.find('#cXX-comp').text(),
-                applicationViewFee: parsedData.find('#cXX-comp').text(),
-                creditCheckFee: parsedData.find('#cXX-comp').text(),
-                otherFee: parsedData.find('#cXX-comp').text(),
-                averageUtilities: parsedData.find('#cXX-comp').text(),
-                scraMilClause: parsedData.find('#cXX-comp').text(),
-                inspectionStatus: parsedData.find('#cXX-comp').text(),
+                term: parsedData.find('#LEASE_DISP-comp').text(),
+                monthlyRent: parsedData.find('#RENT_AMT-comp').text(),
+                deposit: parsedData.find('#DEPOSIT_AMT-comp').text(),
+                petDeposit: parsedData.find('#PET_DEPOSIT_AMT-comp').text(),
+                appFee: parsedData.find('APP_FEE-comp').text(),
+                applicationViewFee: parsedData.find('#APP_VIEW_FEE-comp').text(),
+                creditCheckFee: parsedData.find('#CC_FEE-comp').text(),
+                otherFee: parsedData.find('#OTHER_FEE-comp').text(),
+                averageUtilities: parsedData.find('#AVG_UTILITY_AMT-compt()').text(),
+                scraMilClause: parsedData.find('#MIL_CL_DISP-comp').text(),
+                inspectionStatus: parsedData.find('#INSP_STATUS_DISP-comp').text(),
             },
             locationDetails: {
-                community: parsedData.find('#cXX-comp').text(),
-                schoolDistrict: parsedData.find('#cXX-comp').text(),
-                distanceToInstallation: parsedData.find('#cXX-comp').text(),
-                gpsLat: parsedData.find('#cXX-comp').text(),
-                gpsLong: parsedData.find('#cXX-comp').text(),
-                map: parsedData.find('#cXX-comp').text(),
-                website: parsedData.find('#cXX-comp').text(),
+                community: parsedData.find('#COMMUNITY_NAME-comp').text(),
+                schoolDistrict: parsedData.find('#SCHOOL_DISTRICT-comp').text(),
+                distanceToInstallation: parsedData.find('#DIST_TO_INSTALLATION-comp').text(),
+                gpsLat: parsedData.find('#GPS_LATITUDE-comp').text(),
+                gpsLong: parsedData.find('#GPS_LONGITUDE-comp').text(),
             },
             amenities: {
-                appliancesIncl: parsedData.find('#cXX-comp').text(),
-                community: parsedData.find('#cXX-comp').text(),
-                features: parsedData.find('#cXX-comp').text(),
-                heatingCooling: parsedData.find('#cXX-comp').text(),
-                parking: parsedData.find('#cXX-comp').text(),
-                safetySecurity: parsedData.find('#cXX-comp').text(),
+                appliancesIncl: parsedData.find('span.label:contains("Appliances Included")').parent().next().text(),
+                features: parsedData.find('span.label:contains("Features")').parent().next().text(),
+                heatingCooling: parsedData.find('span.label:contains("Heating & Cooling")').parent().next().text(),
+                parking: parsedData.find('span.label:contains("Parking")').parent().next().text(),
+                safetySecurity: parsedData.find('span.label:contains("Safety & Security")').parent().next().text(),
             }
         }
 
@@ -389,7 +405,7 @@ class ResultExtractor {
         let pageInfoMatches = sourceElement.text().match(ResultExtractor.PAGE_INFO_REGEX);
 
         // One liner to find the current page
-        let currPage = Math.ceil(pageInfoMatches[1] / (pageInfoMatches[2] - pageInfoMatches[1] + 1)) ?? "??";
+        let currPage = Math.ceil(pageInfoMatches[1] / 10) ?? "??";
 
         // Update the current page
         $("#ducky-home-tool div.loading span.page-curr").text(currPage);
@@ -409,7 +425,7 @@ class ResultExtractor {
         let pageInfoMatches = sourceElement.text().match(ResultExtractor.PAGE_INFO_REGEX);
 
         // One liner to find the total number of pages
-        let totalPages = Math.ceil(pageInfoMatches[3] / (pageInfoMatches[2] - pageInfoMatches[1] + 1)) ?? "??";
+        let totalPages = Math.ceil(pageInfoMatches[3] / 10) ?? "??";
 
         // Update the total number of pages
         $("#ducky-home-tool div.loading span.page-total").text(totalPages);
@@ -465,7 +481,7 @@ class ResultExtractor {
 
         // Pull the results
         try {
-            await Promise.all([ResultExtractor._loadResultData(), ResultExtractor._forceGeneratePromise]);
+            await Promise.any([ResultExtractor._loadResultData(), ResultExtractor._forceGeneratePromise]);
         } catch (e) {
             // Expected if the force generate button is pushed
         }
