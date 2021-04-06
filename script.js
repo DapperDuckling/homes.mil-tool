@@ -73,10 +73,9 @@ class ResultExtractor {
      */
     static async _loadResultData() {
 
-        let hasNextPage = false;
         let offset = 0;
         let errorTries = 0;
-        let resultData, resultParsed;
+        let isLastPage, resultData, resultParsed;
         let loadedPages = [];
 
         // Update the page loaded count
@@ -219,9 +218,9 @@ debugger;
             offset += 10;
 
             // Check for a next page
-            hasNextPage = resultParsed.find("#c8-comp a[title='Next Page']").length > 0;
+            isLastPage = resultParsed.find("#c8-comp span.ngScrollPadLinks:last").hasClass("ngScrollPadCurrent");
 
-        } while (hasNextPage);
+        } while (isLastPage === false);
 
     }
 
