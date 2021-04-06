@@ -184,6 +184,8 @@ class ResultExtractor {
                     // Update the UI
                     ResultExtractor._updateCurrProperty(i + 1);
                 } catch (e) {
+                    console.log(e);
+
                     // Save this error property
                     ResultExtractor._errorProperties.push($(resultList[i]).text() + ' - ' + resultList[i].href);
                 }
@@ -310,12 +312,13 @@ class ResultExtractor {
         if (address.trim() === "") {
             let addressElem = parsedData.find('a[title="View in Google Maps"]:first');
 
-            if (addressElem.length === 0) {
-                throw new Error('No valid address found');
-            }
-
             address = parsedData.find('a[title="View in Google Maps"]:first').text();
-            address += " " + parsedData.find('a[title="View in Google Maps"]:first').parent().parent().next().text()
+            address += " " + parsedData.find('a[title="View in Google Maps"]:first').parent().parent().next().text();
+
+            if (addressElem.length === 0) {
+                // Last ditch, just use what was in the link
+                address = linkElement.text;
+            }
         }
 
         // Build our property's object
@@ -360,7 +363,7 @@ class ResultExtractor {
                 applicationViewFee: parsedData.find('#APP_VIEW_FEE-comp').text(),
                 creditCheckFee: parsedData.find('#CC_FEE-comp').text(),
                 otherFee: parsedData.find('#OTHER_FEE-comp').text(),
-                averageUtilities: parsedData.find('#AVG_UTILITY_AMT-compt()').text(),
+                averageUtilities: parsedData.find('#AVG_UTILITY_AMT-comp').text(),
                 scraMilClause: parsedData.find('#MIL_CL_DISP-comp').text(),
                 inspectionStatus: parsedData.find('#INSP_STATUS_DISP-comp').text(),
             },
