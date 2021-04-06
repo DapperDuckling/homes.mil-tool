@@ -1,7 +1,13 @@
 class ResultExtractor {
 
+    static PAGE_INFO_REGEX = /(\d+) to (\d+) of (\d+)/;
+
     static _isRunning = false;
+    static _forceGeneratePromise;
+    static _forceGenerateReject;
     static _forceGenerateMap = false; // Did the user forcibly request a map with the current dataset
+    static _propertyData = [];
+    static _errorProperties = [];
 
     // Entrypoint into the result extractor tool
     static init() {
@@ -22,9 +28,24 @@ class ResultExtractor {
         // Make the loading box draggable
         $('#ducky-home-tool div.loading').draggable();
 
+        // Bind the override button
+        $('#ducky-home-tool button.generate-map').one('click', ResultExtractor._forceGenerate);
+
     }
 
-    static _resetTool() {
+    static _resetForceGeneratePromise() {
+        ResultExtractor._forceGenerateMap = false;
+        ResultExtractor._forceGeneratePromise = new Promise((resolve, reject) => {
+            ResultExtractor._forceGenerateReject = reject;
+        });
+    }
+
+    static _forceGenerate() {
+        ResultExtractor._forceGenerateMap = true;
+        ResultExtractor._forceGenerateReject('USER_FORCE');
+    }
+
+    static _generateMap() {
 
     }
 
@@ -38,9 +59,15 @@ class ResultExtractor {
         let offset = 0;
         let errorTries = 0;
         let resultData;
-        let errorLocations = [];
+
+        // Update the page loaded count
+        ResultExtractor._updateCurrPage();
+        ResultExtractor._updateTotalPages();
 
         do {
+debugger;
+            // Check for a user override
+            if (ResultExtractor._forceGenerateMap) return;
 
             // Force result page to update
             // (Weird way the backend works)
@@ -56,7 +83,11 @@ class ResultExtractor {
                 // Expected due to server-side redirects to http instead of https
             }
 
+            // Check for a user override
+            if (ResultExtractor._forceGenerateMap) return;
+
             try {
+
                 // Grab the updated result page
                 resultData = await $.ajax({
                     type: "GET",
@@ -81,6 +112,12 @@ class ResultExtractor {
                 return;
             }
 
+            // Check for a user override
+            if (ResultExtractor._forceGenerateMap) return;
+
+            // Reset the error tries
+            errorTries = 0;
+
             // Parse the result
             let resultParsed = $(resultData);
 
@@ -96,7 +133,7 @@ class ResultExtractor {
                         await ResultExtractor._grabPropertyDetails(element);
                     } catch (e) {
                         // Save this error property
-                        errorLocations.push(linkElement.text() + ' - ' + linkElement.get(0).href);
+                        ResultExtractor._errorProperties.push(element.text() + ' - ' + element.get(0).href);
                     }
 
                     return resolve();
@@ -107,33 +144,40 @@ class ResultExtractor {
 
             });
 
+            // Check for a user override
+            if (ResultExtractor._forceGenerateMap) return;
+
             await Promise.all(propertyPromises);
 
-            // Reset the error tries
-            errorTries = 0;
+            // Update the page loaded value
+            ResultExtractor._updateCurrPage(resultParsed);
 
             // Update the offset
             offset += 10;
 
-            // todo: Check if there is a next page
-
+            // Check for a next page
+            hasNextPage = resultParsed.find("#c8-comp a[title='Next Page']").length > 0;
 
         } while (hasNextPage);
-
 
     }
 
     static async _grabPropertyDetails(linkElement) {
+
         let retries = 0;
         let parsedData = null;
         const requestObj = {
             type: "GET",
-            url: "/homes/DispatchServlet/Back?Mod=HomesPropertySearch",
+            url: linkElement.href,
             dataType: 'text',
             success: (data) => {
                 parsedData = $(data);
             },
             error: async (a, b, error) => {
+
+                // Check for a user override
+                if (ResultExtractor._forceGenerateMap) return;
+
                 if (retries++ <= 3) {
                     await $.ajax(requestObj);
                     return;
@@ -147,6 +191,9 @@ class ResultExtractor {
 
         // Make the request
         await $.ajax(requestObj);
+
+        // Check for a user override
+        if (ResultExtractor._forceGenerateMap) return;
 
         if (parsedData === null) {
             throw new Error('No parsed data passed to property processing');
@@ -216,6 +263,54 @@ class ResultExtractor {
             }
         }
 
+        ResultExtractor._storePropertyData(propertyData);
+
+    }
+
+    static _updateCurrPage(sourceElement = null) {
+
+        if (sourceElement === null) {
+            sourceElement = $('body');
+        }
+
+        // Find the actual page info element
+        sourceElement = sourceElement.find("#c8-comp span.ngScrollPadLegend");
+
+        // Find regex matches
+        let pageInfoMatches = sourceElement.text().match(ResultExtractor.PAGE_INFO_REGEX);
+
+        // One liner to find the current page
+        let currPage = Math.ceil(pageInfoMatches[1] / (pageInfoMatches[2] - pageInfoMatches[1] + 1)) ?? "??";
+
+        // Update the current page
+        $("#ducky-home-tool div.loading span.page-curr").text(currPage);
+
+    }
+
+    static _updateTotalPages(sourceElement = null) {
+
+        if (sourceElement === null) {
+            sourceElement = $('body');
+        }
+
+        // Find the actual page info element
+        sourceElement = sourceElement.find("#c8-comp span.ngScrollPadLegend");
+
+        // Find regex matches
+        let pageInfoMatches = sourceElement.text().match(ResultExtractor.PAGE_INFO_REGEX);
+
+        // One liner to find the total number of pages
+        let totalPages = Math.ceil(pageInfoMatches[3] / (pageInfoMatches[2] - pageInfoMatches[1] + 1)) ?? "??";
+
+        // Update the total number of pages
+        $("#ducky-home-tool div.loading span.page-total").text(totalPages);
+    }
+
+    static _storePropertyData(propertyData) {
+
+        // Save the property data
+        ResultExtractor._propertyData.push(propertyData);
+
     }
 
     /**
@@ -230,6 +325,11 @@ class ResultExtractor {
             return;
         }
 
+        // Reset flags
+        ResultExtractor._isRunning = [];
+        ResultExtractor._propertyData = [];
+        ResultExtractor._resetForceGeneratePromise();
+
         // Grab the tool div
         let toolDiv = $('#ducky-home-tool');
 
@@ -238,6 +338,9 @@ class ResultExtractor {
 
         // Grab the skip loading button
         let loadingBtn = toolDiv.find('button.generate-map');
+
+        // Enable the skip loading button
+        loadingBtn.prop('disabled', false);
 
         // Bind the skip loading button
         loadingBtn.one('click', () => {
@@ -251,16 +354,16 @@ class ResultExtractor {
         // todo: Determine how many pages we are grabbing and update the UI
 
         // Pull the results
-        await ResultExtractor._loadResultData();
+        try {
+            await Promise.all([ResultExtractor._loadResultData(), ResultExtractor._forceGeneratePromise]);
+        } catch (e) {
+            // Expected if the force generate button is pushed
+        }
+
+        // Display the results
+        console.log(ResultExtractor._propertyData, ResultExtractor._errorProperties);
 
 
-        // // Enable the skip loading button
-        // loadingBtn.prop('disabled', false);
-
-
-    }
-
-    static _generateMap() {
 
     }
 }

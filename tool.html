@@ -58,6 +58,7 @@
     #ducky-home-tool div.loading div.dragbar div:hover {
         background-color: #00000012;
     }
+
 </style>
 <div id="ducky-home-tool">
     <button class="extract">EXTRACT RESULTS</button>
@@ -65,8 +66,8 @@
     <div class="loading">
         <div class="dragbar"><div>::</div></div>
         <h2>LOADING PAGE RESULTS</h2>
-        <h3>Page 1 of 20 results loaded</h3>
-        <div><button class="generate-map">Generate Map (skip loading)</button></div>
+        <h3>Page <span class="page-curr">XX</span> of <span class="page-total">XX</span> results loaded</h3>
+        <div><button class="generate-map" disabled="disabled">Generate Map (skip loading)</button></div>
         <sub>Do not use the site while this is in progress or you may delay your results</sub>
     </div>
 </div>
