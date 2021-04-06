@@ -1,0 +1,19 @@
+{
+  "name": "Move.mil Result Extractor",
+  "description" : "A script to extract the move.mil results for easier manipulation",
+  "version": "0.1",
+  "manifest_version": 2,
+  "content_scripts": [{
+    "js": ["contentscript.js"],
+    "matches": ["*://move.mil/*"]
+  }],
+  "web_accessible_resources": [
+    "script.js",
+    "tool.html"
+  ],
+  "permissions": [
+    "tabs",
+    "storage",
+    "webNavigation"
+  ]
+}
