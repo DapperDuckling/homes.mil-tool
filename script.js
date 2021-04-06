@@ -82,6 +82,9 @@ class ResultExtractor {
         $("#ducky-home-tool div.loading span.page-curr").text("0");
         ResultExtractor._updateTotalPages();
 
+        // Hide the property progress
+        $("#ducky-home-tool div.loading div.property").css('visibility', 'hidden');
+
         do {
 debugger;
             // Check for a user override
@@ -124,7 +127,8 @@ debugger;
                 errorTries = 0;
 
                 // Parse the result
-                resultParsed = $(resultData);
+                // resultParsed = $(resultData);
+                resultParsed = $($.parseHTML(resultData));
 
                 // Check for a page number
                 if (!ResultExtractor._hasCurrentPageText(resultParsed)) {
@@ -162,10 +166,19 @@ debugger;
             // Grab the list of results
             let resultList = resultParsed.find("div.ngComp a.ngLink[title='Details']");
 
+            // Update the UI
+            ResultExtractor._updateTotalProperties(resultList.length);
+
+            // Show the property progress
+            $("#ducky-home-tool div.loading div.property").css('visibility', 'visible');
+
             // Loop through each of the results on this page
             for(let i=0; i<resultList.length; i++) {
                 try {
                     await ResultExtractor._grabPropertyDetails(resultList[i]);
+
+                    // Update the UI
+                    ResultExtractor._updateCurrProperty(i + 1);
                 } catch (e) {
                     // Save this error property
                     ResultExtractor._errorProperties.push($(resultList[i]).text() + ' - ' + resultList[i].href);
@@ -269,7 +282,8 @@ debugger;
             ...currRequestObj,
             url: 'https://www.homes.mil/homes/DispatchServlet/Back?Mod=HomesPropertyDetail',
             success: (data) => {
-                parsedData = $(data);
+                // parsedData = $(data);
+                parsedData = $($.parseHTML(data));
             },
             retries: 0,
         };
@@ -348,6 +362,14 @@ debugger;
 
         ResultExtractor._storePropertyData(propertyData);
 
+    }
+
+    static _updateCurrProperty(val) {
+        $("#ducky-home-tool div.loading span.property-curr").text(val);
+    }
+
+    static _updateTotalProperties(val) {
+        $("#ducky-home-tool div.loading span.property-total").text(val);
     }
 
     static _updateCurrPage(sourceElement = null) {

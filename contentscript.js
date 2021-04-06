@@ -1,4 +1,7 @@
-// Load the UI
+// Set a flag to disable the end user monitoring script
+window["adrum-disable"] = true;
+
+// Load the UI & script
 fetch(chrome.runtime.getURL('/tool.html'))
     .then(response => response.text())
     .then(data => {
