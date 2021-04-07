@@ -1,5 +1,3 @@
-/** @function $ */ // Hush intelliJ, jQuery will be available at runtime
-
 class ResultExtractor {
 
     static PAGE_INFO_REGEX = /(\d+) to (\d+) of (\d+)/;
