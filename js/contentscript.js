@@ -6,7 +6,7 @@
 
 // Set a flag to disable the end user monitoring script
 let s = document.createElement('script');
-s.src = chrome.runtime.getURL('/adrum-disable.js');
+s.src = chrome.runtime.getURL('js/adrum-disable.js');
 s.onload = function() {
     this.remove();
 };
@@ -15,7 +15,7 @@ s.onload = function() {
 // todo: Determine which tooling to load
 
 // Load the UI & script
-fetch(chrome.runtime.getURL('/tool.html'))
+fetch(chrome.runtime.getURL('ui/tool.html'))
     .then(response => response.text())
     .then(data => {
 
@@ -41,7 +41,7 @@ fetch(chrome.runtime.getURL('/tool.html'))
 
         // Dynamically add homes.mil script
         let s = document.createElement('script');
-        s.src = chrome.runtime.getURL('/script.js');
+        s.src = chrome.runtime.getURL('js/script.js');
         s.onload = function() {
             this.remove();
         };

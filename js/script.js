@@ -523,7 +523,7 @@ class ResultExtractor {
 
         // Loop through each property and convert to a string
         ResultExtractor._propertyData.forEach(targetObj => {
-            propertyDataString += Object.keys(targetObj).map(function (key, index) {
+            propertyDataString += Object.keys(targetObj).map(key => {
                 // Cleanup item
                 return targetObj[key].replace(/[\r\n]+/g, " ");
             }).join('\t') + "\n";

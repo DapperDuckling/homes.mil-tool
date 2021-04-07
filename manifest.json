@@ -2,14 +2,21 @@
   "name": "Homes.mil Result Extractor",
   "description" : "A script to extract the home.mil results for easier manipulation",
   "version": "0.2",
+
   "manifest_version": 3,
   "background": {
     "service_worker": "background.js"
   },
+  "homepage_url": "https://dapperduckling.com",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "content_scripts": [{
     "js": [
-      "contentscript.js",
-      "jquery-3.6.0.min.js"
+      "js/contentscript.js",
+      "libs/jquery-3.6.0.min.js"
     ],
     "matches": [
       "*://homes.mil/*",
@@ -17,8 +24,8 @@
     ]
   }, {
     "js": [
-      "mapmaker.js",
-      "jquery-3.6.0.min.js"
+      "js/mapmaker.js",
+      "libs/jquery-3.6.0.min.js"
     ],
     "matches": [
       "*://*.easymapmaker.com/*"
@@ -26,11 +33,14 @@
   }],
   "web_accessible_resources": [{
     "resources": [
-      "tool.html",
-      "script.js",
-      "adrum-disable.js"
+      "ui/tool.html",
+      "js/script.js",
+      "js/adrum-disable.js"
     ],
-    "matches": ["<all_urls>"],
+    "matches": [
+      "*://homes.mil/*",
+      "*://www.homes.mil/*"
+    ],
     "extension_ids": []
   }],
   "permissions": [

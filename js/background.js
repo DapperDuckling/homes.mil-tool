@@ -24,15 +24,15 @@ chrome.runtime.onMessage.addListener(
         // Create a new tab with the map maker
         let tab = await createTab('https://www.easymapmaker.com/');
         chrome.scripting.executeScript({
-            files: ['mapmaker.js'],
+            files: ['js/mapmaker.js'],
             target: {
                 tabId: tab.id,
             },
         }, () => {
             // Send the data to the new tab
-            chrome.tabs.sendMessage(tab.id, request, function(response) {
-                sendResponse(response);
-            });
+            chrome.tabs.sendMessage(tab.id, request);
         });
+
+        sendResponse(true);
     }
 );
