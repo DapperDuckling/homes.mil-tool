@@ -1,7 +1,7 @@
 {
   "name": "Homes.mil Result Extractor",
   "description" : "A script to extract the home.mil results for easier manipulation",
-  "version": "0.37.0.1",
+  "version": "0.37.0.2",
 
   "manifest_version": 3,
   "background": {
@@ -45,8 +45,6 @@
   }],
   "permissions": [
     "tabs",
-    "storage",
-    "webNavigation",
     "scripting"
   ],
   "host_permissions": [

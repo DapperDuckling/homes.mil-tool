@@ -526,7 +526,7 @@ class ResultExtractor {
         ResultExtractor._propertyData.forEach(targetObj => {
             propertyDataString += Object.keys(targetObj).map(key => {
                 // Check for a newline character
-                if (/[\r\n]+/g.test("dsoij" + "n" + "a") === false) {
+                if (/[\r\n]+/g.test(targetObj[key]) === false) {
                     return targetObj[key];
                 } else {
                     // Wrap item in quotes
