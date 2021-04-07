@@ -27,10 +27,10 @@ class ResultExtractor {
         extractButton.one('click', this._extract);
 
         // Make the loading box draggable
-        $('#ducky-home-tool div.loading').draggable();
+        $('#ducky-home-tool div.loading, #ducky-home-tool div.results').draggable();
 
         // Bind the override button
-        $('#ducky-home-tool button.generate-map').one('click', ResultExtractor._forceGenerate);
+        $('#ducky-home-tool button.force-show-results').one('click', ResultExtractor._forceGenerate);
 
     }
 
@@ -458,6 +458,10 @@ class ResultExtractor {
         ResultExtractor._propertyData = [];
         ResultExtractor._resetForceGeneratePromise();
 
+        // Hide results
+        let resultsElem = $("#ducky-home-tool div.results")
+        resultsElem.hide();
+
         // Grab the tool div
         let toolDiv = $('#ducky-home-tool');
 
@@ -465,7 +469,7 @@ class ResultExtractor {
         toolDiv.find('button.extract').prop('disabled', true);
 
         // Grab the skip loading button
-        let loadingBtn = toolDiv.find('button.generate-map');
+        let loadingBtn = toolDiv.find('button.force-show-results');
 
         // Enable the skip loading button
         loadingBtn.prop('disabled', false);
@@ -489,10 +493,14 @@ class ResultExtractor {
             // Expected if the force generate button is pushed
         }
 
+        // Disable the skip loading button
+        loadingBtn.prop('disabled', true);
+
         // Display the results
         console.log(ResultExtractor._propertyData, ResultExtractor._errorProperties);
-
-
+        resultsElem.find('#ducky-home-tool textarea.property-data').val(ResultExtractor._propertyData.join("\n"));
+        resultsElem.find('textarea.error-properties').val(ResultExtractor._errorProperties.join("\n"));
+        resultsElem.show();
 
     }
 }

@@ -1,8 +1,11 @@
 {
   "name": "Homes.mil Result Extractor",
   "description" : "A script to extract the home.mil results for easier manipulation",
-  "version": "0.1",
-  "manifest_version": 2,
+  "version": "0.2",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [{
     "js": [
       "contentscript.js",
@@ -13,11 +16,15 @@
       "*://www.homes.mil/*"
     ]
   }],
-  "web_accessible_resources": [
-    "tool.html",
-    "script.js"
-  ],
-
+  "web_accessible_resources": [{
+    "resources": [
+      "tool.html",
+      "script.js",
+      "adrum-disable.js"
+    ],
+    "matches": ["<all_urls>"],
+    "extension_ids": []
+  }],
   "permissions": [
     "tabs",
     "storage",
