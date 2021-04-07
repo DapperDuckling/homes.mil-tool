@@ -328,6 +328,7 @@ class ResultExtractor {
         // Build our property's object
         let propertyData = {
             listingId: parsedData.find('div.ngComp:contains("Listing ID:")').parent().next().text(),
+            listingUrl: linkElement.href,
             name: parsedData.find('div.ngComp:contains("Name:")').parent().next().text() + " " + parsedData.find('div.ngComp:contains("Name:")').parent().nextAll(':eq(1)').text(),
             phone: parsedData.find('div.ngComp:contains("Phone:")').parent().next().text(),
             altPhone: parsedData.find('div.ngComp:contains("Alt Phone::")').parent().next().text(),
@@ -524,8 +525,13 @@ class ResultExtractor {
         // Loop through each property and convert to a string
         ResultExtractor._propertyData.forEach(targetObj => {
             propertyDataString += Object.keys(targetObj).map(key => {
-                // Cleanup item
-                return targetObj[key].replace(/[\r\n]+/g, " ");
+                // Check for a newline character
+                if (/[\r\n]+/g.test("dsoij" + "n" + "a") === false) {
+                    return targetObj[key];
+                } else {
+                    // Wrap item in quotes
+                    return "\"" + targetObj[key] + "\"";
+                }
             }).join('\t') + "\n";
         });
 

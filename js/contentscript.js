@@ -12,8 +12,6 @@ s.onload = function() {
 };
 (document.head || document.documentElement).appendChild(s);
 
-// todo: Determine which tooling to load
-
 // Load the UI & script
 fetch(chrome.runtime.getURL('ui/tool.html'))
     .then(response => response.text())

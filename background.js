@@ -21,6 +21,9 @@ self.addEventListener('install', async function() {
 chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
 
+        // Send back a response immediately
+        sendResponse(true);
+
         // Create a new tab with the map maker
         let tab = await createTab('https://www.easymapmaker.com/');
         chrome.scripting.executeScript({
@@ -32,7 +35,5 @@ chrome.runtime.onMessage.addListener(
             // Send the data to the new tab
             chrome.tabs.sendMessage(tab.id, request);
         });
-
-        sendResponse(true);
     }
 );
