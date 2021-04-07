@@ -1,19 +1,38 @@
+// Adapted from: https://stackoverflow.com/a/44864966/3101412
+function createTab (url) {
+    return new Promise(resolve => {
+        chrome.tabs.create({url}, async tab => {
+            chrome.tabs.onUpdated.addListener(function listener (tabId, info) {
+                if (info.status === 'complete' && tabId === tab.id) {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve(tab);
+                }
+            });
+        });
+    });
+}
 
-self.addEventListener('install', function(event) {
+
+self.addEventListener('install', async function() {
    // console.log('test');
+
 });
 
 chrome.runtime.onMessage.addListener(
-    (request, sender, sendResponse) => {
-        console.log(sender.tab ?
-            "from a content script:" + sender.tab.url :
-            "from the extension");
-        console.log(request);
+    async (request, sender, sendResponse) => {
 
-        // // Request data
-        // request.resultData
-
-        // On success
-        sendResponse(true);
+        // Create a new tab with the map maker
+        let tab = await createTab('https://www.easymapmaker.com/');
+        chrome.scripting.executeScript({
+            files: ['mapmaker.js'],
+            target: {
+                tabId: tab.id,
+            },
+        }, () => {
+            // Send the data to the new tab
+            chrome.tabs.sendMessage(tab.id, request, function(response) {
+                sendResponse(response);
+            });
+        });
     }
 );

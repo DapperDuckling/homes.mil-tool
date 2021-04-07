@@ -46,7 +46,7 @@ class ResultExtractor {
     }
 
     static _getCurrentPageValue(sourceElem) {
-        return parseInt(sourceElem.find("#c8-comp span.ngScrollPadCurrent").text());
+        return parseInt(sourceElem.find("#c8-comp span.ngScrollPadCurrent").text()) || 1;
     }
 
     static _resetForceGeneratePromise() {
@@ -132,11 +132,12 @@ class ResultExtractor {
                 // resultParsed = $(resultData);
                 resultParsed = $($.parseHTML(resultData));
 
-                // Check for a page number
-                if (!ResultExtractor._hasCurrentPageText(resultParsed)) {
-                    // noinspection ExceptionCaughtLocallyJS
-                    throw new Error('Cannot find page number');
-                }
+                // (Removed) Will not have page number for single page
+                // // Check for a page number
+                // if (!ResultExtractor._hasCurrentPageText(resultParsed)) {
+                //     // noinspection ExceptionCaughtLocallyJS
+                //     throw new Error('Cannot find page number');
+                // }
 
                 // Get the current page from DOM (not the mathematical way)
                 let markedCurrentPage = ResultExtractor._getCurrentPageValue(resultParsed);
@@ -177,6 +178,10 @@ class ResultExtractor {
             // Loop through each of the results on this page
             for(let i=0; i<resultList.length; i++) {
                 try {
+
+                    // Check for a user override
+                    if (ResultExtractor._forceGenerateMap) return;
+
                     await ResultExtractor._grabPropertyDetails(resultList[i]);
 
                     // Update the UI
@@ -235,7 +240,8 @@ class ResultExtractor {
             offset += 10;
 
             // Check for a next page
-            isLastPage = resultParsed.find("#c8-comp span.ngScrollPadLinks > :last").hasClass("ngScrollPadCurrent");
+            isLastPage = !ResultExtractor._hasCurrentPageText(resultParsed)
+                || resultParsed.find("#c8-comp span.ngScrollPadLinks > :last").hasClass("ngScrollPadCurrent");
 
         } while (isLastPage === false);
 
@@ -496,10 +502,43 @@ class ResultExtractor {
 
         // Display the results
         console.log(ResultExtractor._propertyData, ResultExtractor._errorProperties);
-        resultsElem.find('#ducky-home-tool textarea.property-data').val(ResultExtractor._propertyData.join("\n"));
+        resultsElem.find('textarea.property-data').val(ResultExtractor._buildPropertyData());
         resultsElem.find('textarea.error-properties').val(ResultExtractor._errorProperties.join("\n"));
         resultsElem.show();
 
+    }
+
+    static _buildPropertyData() {
+
+        let propertyDataString = "";
+
+        // Check for empty result
+        if (ResultExtractor._propertyData.length === 0) return "";
+
+        // Flatten the property objects
+        ResultExtractor._flattenProperties();
+
+        // Add the headers
+        propertyDataString += Object.keys(ResultExtractor._propertyData[0]).join("\t") + "\n";
+
+        // Loop through each property and convert to a string
+        ResultExtractor._propertyData.forEach(targetObj => {
+            propertyDataString += Object.keys(targetObj).map(function (key, index) {
+                // Cleanup item
+                return targetObj[key].replace(/[\r\n]+/g, " ");
+            }).join('\t') + "\n";
+        });
+
+        return propertyDataString;
+    }
+
+    static _flattenProperties() {
+        ResultExtractor._propertyData.forEach((targetObj, key, array) => {
+            // One-liner adapted from: https://stackoverflow.com/a/33037683/3101412
+            array[key] = Object.assign({}, ...function _flatten(o) {
+                return [].concat(...Object.keys(o).map(k => typeof o[k] === 'object' ? _flatten(o[k]) : ({[k]: o[k]})))
+            }(targetObj));
+        });
     }
 }
 

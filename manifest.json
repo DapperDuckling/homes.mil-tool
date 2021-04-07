@@ -15,6 +15,14 @@
       "*://homes.mil/*",
       "*://www.homes.mil/*"
     ]
+  }, {
+    "js": [
+      "mapmaker.js",
+      "jquery-3.6.0.min.js"
+    ],
+    "matches": [
+      "*://*.easymapmaker.com/*"
+    ]
   }],
   "web_accessible_resources": [{
     "resources": [
@@ -28,6 +36,10 @@
   "permissions": [
     "tabs",
     "storage",
-    "webNavigation"
+    "webNavigation",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.easymapmaker.com/*"
   ]
 }

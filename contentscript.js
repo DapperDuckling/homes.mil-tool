@@ -24,25 +24,15 @@ fetch(chrome.runtime.getURL('/tool.html'))
         // Add the homes.mil UI
         $("body").append(data);
 
-        // Clear the storage
-        chrome.storage.sync.clear();
-
         // Bind the homes.mil create map button
         $("#ducky-home-tool").on('click', 'button.make-map', () => {
             let resultData = $("#ducky-home-tool div.results textarea.property-data").val();
-            let storageKey = 'map-data-' + Date.now();
-            let storageObj = {};
-            storageObj[storageKey] = resultData;
-
-            chrome.storage.sync.set(storageObj);
 
             chrome.runtime.sendMessage({resultData: resultData}, function(response) {
                 if (chrome.runtime.lastError) {
                     alert('Failed to invoke map creation script, see console for error (F12)');
                     console.log(chrome.runtime.lastError.message);
-                }
-
-                if (response !== true) {
+                } else if (response !== true) {
                     alert('Failed to make map, see console for error (F12)');
                     console.log(response);
                 }
