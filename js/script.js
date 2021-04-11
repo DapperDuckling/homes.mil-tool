@@ -239,6 +239,17 @@ class ResultExtractor {
             // Update the offset
             offset += 10;
 
+            // Remove non-functional <span> tags that do nothing than sit there and laugh at me
+            resultParsed.find("#c8-comp span.ngScrollPadLinks > span").each(function(i, element) {
+                let elm = $(element);
+
+                // Remove all special nbsp character
+                elm.text(elm.text().replaceAll("\u00A0", ""));
+
+                // Oh, it's empty? Why is it on the page! Remove it...
+                if (elm.text() === "") elm.remove();
+            });
+
             // Check for a next page
             isLastPage = !ResultExtractor._hasCurrentPageText(resultParsed)
                 || resultParsed.find("#c8-comp span.ngScrollPadLinks > :last").hasClass("ngScrollPadCurrent");
