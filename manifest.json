@@ -1,7 +1,7 @@
 {
   "name": "Homes.mil Property Mapper",
   "description" : "A tool to map all the properties in your search results onto a DYNAMIC MAP!",
-  "version": "0.37.0.4",
+  "version": "0.37.0.5",
   "manifest_version": 3,
   "background": {
     "service_worker": "background.js"
@@ -43,7 +43,6 @@
     "extension_ids": []
   }],
   "permissions": [
-    "tabs",
     "scripting"
   ],
   "host_permissions": [
