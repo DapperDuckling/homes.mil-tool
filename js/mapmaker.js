@@ -4,13 +4,19 @@ function handleRequest(inputData) {
     $('#sourceData').val(inputData.locationData).trigger('change');
 
     // Update the options
-    $("#region_sel").val(inputData.regionId)
+    $("#region_sel").val(inputData.regionId);
     $("#lat_sel").val(-1);
     $("#long_sel").val(-1);
     $( "#clusterCB" ).prop( "checked", true );
 
-    // Make the map
-    $('#makeMapButton').click();
+    setTimeout(() => {
+
+        // Update the region one more time
+        $("#region_sel").val(inputData.regionId);
+
+        // Make the map
+        $('#makeMapButton').click();
+    }, 2000);
 }
 
 
