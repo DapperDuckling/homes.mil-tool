@@ -61,9 +61,6 @@ class ResultExtractor {
         ResultExtractor._forceGenerateReject('USER_FORCE');
     }
 
-    static _generateMap() {
-
-    }
 
     /**
      * Handles pulling the result data from each available page
@@ -201,7 +198,7 @@ class ResultExtractor {
                 // Force the server to return to the search page (thanks backend)
                 let searchPageReq = {
                     type: "GET",
-                    url: 'https://www.homes.mil/homes/DispatchServlet/HomesPropertySearch',
+                    url: 'https://www.homes.mil/homes/DispatchServlet/Back?Mod=pop',
                     dataType: 'text',
                     error: async (a, b, error) => {
 
@@ -489,15 +486,6 @@ class ResultExtractor {
 
         // Enable the skip loading button
         loadingBtn.prop('disabled', false);
-
-        // Bind the skip loading button
-        loadingBtn.one('click', () => {
-            // Set our forced flag
-            ResultExtractor._forceGenerateMap = true;
-
-            // Call the map generator
-            ResultExtractor._generateMap();
-        });
 
         // Show the loading box
         toolDiv.find('div.loading').show();
