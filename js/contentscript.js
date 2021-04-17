@@ -24,9 +24,12 @@ fetch(chrome.runtime.getURL('ui/tool.html'))
 
         // Bind the homes.mil create map button
         $("#ducky-home-tool").on('click', 'button.make-map', () => {
-            let resultData = $("#ducky-home-tool div.results textarea.property-data").val();
+            let mapMakerData = {
+                locationData: $("#ducky-home-tool div.results textarea.property-data").val(),
+                regionId: $("#ducky-home-tool div.results select.region-selector").val(),
+            }
 
-            chrome.runtime.sendMessage({resultData: resultData}, function(response) {
+            chrome.runtime.sendMessage({resultData: mapMakerData}, function(response) {
                 if (chrome.runtime.lastError) {
                     alert('Failed to invoke map creation script, see console for error (F12)');
                     console.log(chrome.runtime.lastError.message);

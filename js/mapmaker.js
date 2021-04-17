@@ -1,8 +1,10 @@
 function handleRequest(inputData) {
+
     // Copy the data over
-    $('#sourceData').val(inputData).trigger('change');
+    $('#sourceData').val(inputData.locationData).trigger('change');
 
     // Update the options
+    $("#region_sel").val(inputData.regionId)
     $("#lat_sel").val(-1);
     $("#long_sel").val(-1);
     $( "#clusterCB" ).prop( "checked", true );

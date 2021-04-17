@@ -89,6 +89,18 @@
         white-space: nowrap;
     }
 
+    div.disclaimer {
+        color: red;
+        font-size: 0.6em;
+    }
+
+    button.make-map {
+        margin-top: 10px;
+    }
+
+    textarea.error-properties {
+        height: 60px;
+    }
 </style>
 <div id="ducky-home-tool">
     <button class="extract">EXTRACT RESULTS</button>
@@ -108,6 +120,55 @@
         <textarea class="property-data"></textarea>
         <div class="label">Property Errors</div>
         <textarea class="error-properties"></textarea>
+        <div>
+            <label for="region">Region</label>
+            <select id="region" class="region-selector" >
+                <option value="">Auto-Detect</option>
+                <option value="ar">Argentina</option>
+                <option value="at">Austria</option>
+                <option value="au">Australia</option>
+                <option value="be">Belgium</option>
+                <option value="br">Brazil</option>
+                <option value="ca">Canada</option>
+                <option value="cn">China</option>
+                <option value="co">Colombia</option>
+                <option value="cz">Czech Republic</option>
+                <option value="dk">Denmark</option>
+                <option value="fi">Finland</option>
+                <option value="fr">France</option>
+                <option value="de">Germany</option>
+                <option value="gr">Greece</option>
+                <option value="in">India</option>
+                <option value="id">Indonesia</option>
+                <option value="ie">Ireland</option>
+                <option value="it">Italy</option>
+                <option value="jp">Japan</option>
+                <option value="my">Malaysia</option>
+                <option value="mx">Mexico</option>
+                <option value="nl">Netherlands</option>
+                <option value="nz">New Zealand</option>
+                <option value="no">Norway</option>
+                <option value="pl">Poland</option>
+                <option value="pt">Portugal</option>
+                <option value="ph">Philippines</option>
+                <option value="ro">Romania</option>
+                <option value="ru">Russia</option>
+                <option value="sa">Saudi Arabia</option>
+                <option value="sg">Singapore</option>
+                <option value="za">South Africa</option>
+                <option value="kr">South Korea</option>
+                <option value="es">Spain</option>
+                <option value="se">Sweden</option>
+                <option value="ch">Switzerland</option>
+                <option value="tw">Taiwan</option>
+                <option value="tr">Turkey</option>
+                <option value="ua">Ukraine</option>
+                <option value="uk">United Kingdom</option>
+                <option value="us">United States</option>
+            </select>
+            <div class="disclaimer">*Auto-detect works by using the country associated with your IP address</div>
+            <div class="disclaimer">*Select a region if mapmaking fails during the geocoding process</div>
+        </div>
         <button class="make-map">Make map!</button>
     </div>
 </div>
