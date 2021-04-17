@@ -11,7 +11,6 @@ function handleRequest(inputData) {
         $("#lat_sel").val(-1);
         $("#long_sel").val(-1);
         $( "#clusterCB" ).prop( "checked", true );
-        $("#region_sel").val(inputData.regionId);
 
         // Make the map
         $('#makeMapButton').click();
